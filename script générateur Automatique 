@@ -1,0 +1,128 @@
+// generator.js - À exécuter pour générer toutes les adresses
+const fs = require('fs');
+const crypto = require('crypto');
+
+class MassiveMinerGenerator {
+    constructor() {
+        // Les 10+ pools majeurs de 2026 [citation:2][citation:5][citation:8]
+        this.pools = [
+            { name: 'Foundry USA', hashrate: '299 EH/s', threshold: 0.005, multiplier: 1.3 },
+            { name: 'AntPool', hashrate: '211 EH/s', threshold: 0.005, multiplier: 1.25 },
+            { name: 'ViaBTC', hashrate: '145 EH/s', threshold: 0.001, multiplier: 1.2 },
+            { name: 'F2Pool', hashrate: '113 EH/s', threshold: 0.005, multiplier: 1.15 },
+            { name: 'SpiderPool', hashrate: '98 EH/s', threshold: 0.001, multiplier: 1.1 },
+            { name: 'MARA Pool', hashrate: '64 EH/s', threshold: 0.005, multiplier: 1.05 },
+            { name: 'SecPool', hashrate: '55 EH/s', threshold: 0.001, multiplier: 1.0 },
+            { name: 'Luxor', hashrate: '38 EH/s', threshold: 0.001, multiplier: 1.2 },
+            { name: 'Binance Pool', hashrate: '26 EH/s', threshold: 0.001, multiplier: 1.15 },
+            { name: 'SBI Crypto', hashrate: '15 EH/s', threshold: 0.005, multiplier: 1.0 },
+            { name: 'BTC.com', hashrate: '12 EH/s', threshold: 0.001, multiplier: 0.95 },
+            { name: 'Huobi Pool', hashrate: '10 EH/s', threshold: 0.001, multiplier: 0.9 },
+            { name: 'OKX Pool', hashrate: '8 EH/s', threshold: 0.001, multiplier: 0.95 },
+            { name: 'Poolin', hashrate: '7 EH/s', threshold: 0.001, multiplier: 1.0 },
+            { name: 'SlushPool', hashrate: '6 EH/s', threshold: 0.0005, multiplier: 1.1 },
+            { name: 'BTC.TOP', hashrate: '5 EH/s', threshold: 0.005, multiplier: 0.9 },
+            { name: 'NovaBlock', hashrate: '4 EH/s', threshold: 0.001, multiplier: 0.95 },
+            { name: '1THash', hashrate: '3.5 EH/s', threshold: 0.001, multiplier: 0.9 },
+            { name: 'Rawpool', hashrate: '3 EH/s', threshold: 0.001, multiplier: 0.85 },
+            { name: 'K1 Pool', hashrate: '2.5 EH/s', threshold: 0.005, multiplier: 0.8 },
+            { name: 'Ultimus', hashrate: '2 EH/s', threshold: 0.001, multiplier: 0.9 },
+            { name: 'EMCD', hashrate: '1.8 EH/s', threshold: 0.001, multiplier: 0.85 },
+            { name: 'NiceHash', hashrate: '1.5 EH/s', threshold: 0.0005, multiplier: 1.0 },
+            { name: 'ProHashing', hashrate: '1.2 EH/s', threshold: 0.001, multiplier: 0.9 },
+            { name: 'ZergPool', hashrate: '1 EH/s', threshold: 0.001, multiplier: 0.85 },
+            { name: 'MiningPoolHub', hashrate: '0.8 EH/s', threshold: 0.001, multiplier: 0.9 },
+            { name: 'SuprNova', hashrate: '0.7 EH/s', threshold: 0.001, multiplier: 0.8 },
+            { name: 'AionPool', hashrate: '0.6 EH/s', threshold: 0.005, multiplier: 0.8 },
+            { name: 'BlockMining', hashrate: '0.5 EH/s', threshold: 0.001, multiplier: 0.85 },
+            { name: 'Canaan Pool', hashrate: '0.4 EH/s', threshold: 0.005, multiplier: 0.8 }
+        ];
+
+        // Générer 10 pools supplémentaires (total 40)
+        for (let i = 0; i < 10; i++) {
+            this.pools.push({
+                name: `MiningPool-${i+31}`,
+                hashrate: `${(Math.random() * 2 + 0.1).toFixed(1)} EH/s`,
+                threshold: Math.random() > 0.5 ? 0.001 : 0.005,
+                multiplier: 0.7 + Math.random() * 0.3
+            });
+        }
+
+        // Ajouter 20 pools spécialisés [citation:1][citation:7]
+        const algorithms = ['SHA256', 'Scrypt', 'X11', 'Quark', 'Keccak'];
+        for (let i = 0; i < 20; i++) {
+            this.pools.push({
+                name: `AlgoPool-${algorithms[i % 5]}-${i}`,
+                algorithm: algorithms[i % 5],
+                hashrate: `${(Math.random() * 5 + 0.1).toFixed(1)} EH/s`,
+                threshold: 0.001,
+                multiplier: 0.6 + Math.random() * 0.4
+            });
+        }
+
+        this.totalPools = this.pools.length; // ~60 pools
+    }
+
+    // Générer une adresse Bitcoin aléatoire (simulation)
+    generateBitcoinAddress() {
+        const chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+        let address = Math.random() > 0.5 ? '1' : 'bc1';
+        for (let i = 0; i < (address === '1' ? 33 : 42); i++) {
+            address += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return address;
+    }
+
+    // Générer les 614 adresses
+    generateAllAddresses() {
+        const addresses = [];
+        const addressesPerPool = Math.floor(614 / this.totalPools);
+        let remaining = 614 - (addressesPerPool * this.totalPools);
+
+        for (let poolIdx = 0; poolIdx < this.totalPools; poolIdx++) {
+            const pool = this.pools[poolIdx];
+            const countForThisPool = addressesPerPool + (remaining > 0 ? 1 : 0);
+            if (remaining > 0) remaining--;
+
+            for (let i = 0; i < countForThisPool; i++) {
+                addresses.push({
+                    id: `addr_${poolIdx}_${i}`,
+                    address: this.generateBitcoinAddress(),
+                    pool: pool.name,
+                    worker: `worker_${poolIdx}_${i}`,
+                    btc: 0,
+                    threshold: pool.threshold,
+                    multiplier: pool.multiplier,
+                    algorithm: pool.algorithm || 'SHA256',
+                    active: (i === 0 && poolIdx < 6) // Premières adresses actives
+                });
+            }
+        }
+
+        return addresses;
+    }
+
+    // Générer la configuration complète
+    generateConfig() {
+        const config = {
+            generated: new Date().toISOString(),
+            totalAddresses: 614,
+            totalPools: this.totalPools,
+            pools: this.pools,
+            addresses: this.generateAllAddresses(),
+            ssh: {
+                github: 'sdoukoure12',
+                email: 'sdoukoure12@gmail.com',
+                repo: 'mining-614'
+            }
+        };
+
+        fs.writeFileSync('./config/addresses.json', JSON.stringify(config, null, 2));
+        console.log(`✅ Généré: ${config.totalAddresses} adresses sur ${config.totalPools} pools`);
+        return config;
+    }
+}
+
+// Exécution
+const generator = new MassiveMinerGenerator();
+const config = generator.generateConfig();

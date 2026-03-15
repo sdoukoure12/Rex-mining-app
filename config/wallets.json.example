@@ -1,0 +1,35 @@
+{
+  "_comment": "Copy this file to config/wallets.json and fill in your own Bitcoin addresses. config/wallets.json is excluded from version control.",
+  "wallets": [
+    {
+      "id": "braiins",
+      "pool": "Braiins",
+      "address": "your_bitcoin_address_here"
+    },
+    {
+      "id": "viabtc",
+      "pool": "ViaBTC",
+      "address": "your_bitcoin_address_here"
+    },
+    {
+      "id": "f2pool",
+      "pool": "F2Pool",
+      "address": "your_bitcoin_address_here"
+    },
+    {
+      "id": "binance",
+      "pool": "Binance",
+      "address": "your_bitcoin_address_here"
+    },
+    {
+      "id": "luxor",
+      "pool": "Luxor",
+      "address": "your_bitcoin_address_here"
+    },
+    {
+      "id": "mara",
+      "pool": "Mara",
+      "address": "your_bitcoin_address_here"
+    }
+  ]
+}
