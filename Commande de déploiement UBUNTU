@@ -1,0 +1,52 @@
+#!/bin/bash
+# deploy.sh - Installation complète
+
+echo "🚀 INSTALLATION MASSIVE MINER 614"
+echo "=================================="
+
+# 1. Prérequis système
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y nodejs npm git screen curl wget
+
+# 2. Création structure
+mkdir -p ~/mining-614/{config,scripts,logs}
+cd ~/mining-614
+
+# 3. Initialisation Node.js
+npm init -y
+npm install axios fs readline child_process
+
+# 4. Génération des adresses
+cat > scripts/generator.js << 'EOF'
+# Colle le code du générateur ici
+EOF
+
+node scripts/generator.js
+
+# 5. Installation du master miner
+cat > scripts/master-miner.js << 'EOF'
+# Colle le code du master miner ici
+EOF
+
+# 6. Configuration SSH GitHub
+ssh-keygen -t ed25519 -C "sdoukoure12@gmail.com" -f ~/.ssh/github_614 -N ""
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/github_614
+
+echo -e "\n🔑 TA CLÉ PUBLIQUE SSH (à copier sur GitHub):"
+cat ~/.ssh/github_614.pub
+
+# 7. Configuration Git
+git config --global user.email "sdoukoure12@gmail.com"
+git config --global user.name "sdoukoure12"
+
+# 8. Premier commit
+git init
+git add .
+git commit -m "Initial commit - 614 addresses mining project"
+git branch -M main
+
+echo -e "\n✅ Installation terminée!"
+echo "📁 Projet: ~/mining-614"
+echo "🚀 Pour lancer: node scripts/master-miner.js"
+echo "🔗 Dépôt: https://github.com/sdoukoure12/mining-614"
