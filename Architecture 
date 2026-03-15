@@ -1,0 +1,13 @@
+# Structure finale
+~/mining-614/
+├── config/
+│   ├── pools.json          # Configuration des 60 pools
+│   ├── addresses.json      # Vos 614 adresses générées
+│   └── ssh/                 # Clés SSH pour GitHub
+├── scripts/
+│   ├── generator.js         # Générateur automatique
+│   ├── master-miner.js      # Script principal unifié
+│   └── deploy.sh            # Déploiement automatisé
+├── logs/
+│   └── mining.log
+└── README.md                # Documentation complète
