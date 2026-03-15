@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+Script de configuration multi-pools pour Lightning Miner
+Utilisez ce script pour générer une configuration avec vos adresses Bitcoin et Lightning.
+Supporte la répartition entre plusieurs pools (fallback ou équilibrage).
+"""
+
+import argparse
+import sys
+import json
+
+# Exemple de pools supportés (à compléter selon vos pools préférées)
+POOLS = {
+    "f2pool": {
+        "url": "stratum+tcp://btc.f2pool.com:1314",
+        "format": "bitcoinaddress.workername"
+    },
+    "antpool": {
+        "url": "stratum+tcp://btc.antpool.com:25",
+        "format": "bitcoinaddress.workername"
+    },
+    "viabtc": {
+        "url": "stratum+tcp://btc.viabtc.com:25",
+        "format": "bitcoinaddress.workername"
+    },
+    "slushpool": {
+        "url": "stratum+tcp://stratum.slushpool.com:3333",
+        "format": "bitcoinaddress.workername"
+    },
+    "lightningpool": {  # Pool hypothétique acceptant les adresses Lightning
+        "url": "stratum+tcp://lightning.example.com:3030",
+        "format": "lightningaddress.workername"
+    }
+}
+
+def generate_pool_string(pool_name, address, worker, password="x"):
+    """Génère la chaîne de connexion pour un pool donné."""
+    if pool_name not in POOLS:
+        raise ValueError(f"Pool '{pool_name}' inconnu. Choisissez parmi: {', '.join(POOLS.keys())}")
+    
+    pool_info = POOLS[pool_name]
+    # Remplacer le format par l'adresse et le worker
+    user = pool_info["format"].replace("bitcoinaddress", address).replace("lightningaddress", address).replace("workername", worker)
+    return f"{pool_info['url']} {user} {password}"
+
+def main():
+    parser = argparse.ArgumentParser(description="Générateur de configuration pour Lightning Miner multi-pools")
+    parser.add_argument("--btc-address", required=True, help="Votre adresse Bitcoin (pour les pools traditionnelles)")
+    parser.add_argument("--lightning-address", help="Votre adresse Lightning (si un pool l'accepte)")
+    parser.add_argument("--worker", default="worker1", help="Nom du worker (par défaut: worker1)")
+    parser.add_argument("--pools", nargs="+", required=True, help="Liste des noms de pools (ex: f2pool antpool viabtc)")
+    parser.add_argument("--mode", choices=["failover", "balance"], default="failover",
+                        help="Mode de répartition: failover (prioritaire) ou balance (équilibrage)")
+    parser.add_argument("--output", help="Fichier de sortie pour la configuration (optionnel)")
+    
+    args = parser.parse_args()
+    
+    # Construction des connexions
+    pool_strings = []
+    for pool in args.pools:
+        # Déterminer quelle adresse utiliser selon le pool
+        if pool == "lightningpool" and args.lightning_address:
+            addr = args.lightning_address
+        else:
+            addr = args.btc_address
+        
+        try:
+            pool_str = generate_pool_string(pool, addr, args.worker)
+            pool_strings.append(pool_str)
+        except ValueError as e:
+            print(f"Erreur pour le pool {pool}: {e}", file=sys.stderr)
+            sys.exit(1)
+    
+    if not pool_strings:
+        print("Aucune pool valide configurée.", file=sys.stderr)
+        sys.exit(1)
+    
+    # Génération de la ligne de commande pour un mineur (exemple avec cgminer)
+    if args.mode == "failover":
+        # En mode failover, on concatène les pools avec des '|' (cgminer)
+        pools_arg = "|".join(pool_strings)
+    else:
+        # En mode balance, on peut utiliser plusieurs '--url' etc. (selon le mineur)
+        # Ici on utilise le même format mais cgminer peut les séparer par des ','
+        pools_arg = ",".join(pool_strings)
+    
+    miner_cmd = f"cgminer --url {pools_arg} --userpass {args.worker}:x"
+    
+    # Affichage ou sauvegarde
+    if args.output:
+        with open(args.output, "w") as f:
+            f.write(miner_cmd + "\n")
+        print(f"Configuration écrite dans {args.output}")
+    else:
+        print("Ligne de commande générée :")
+        print(miner_cmd)
+    
+    # Optionnel: générer aussi un fichier JSON pour d'autres outils
+    config_json = {
+        "pools": [
+            {
+                "name": pool,
+                "url": POOLS[pool]["url"],
+                "user": addr,
+                "worker": args.worker,
+                "password": "x"
+            }
+            for pool, addr in zip(args.pools, [args.btc_address if p != "lightningpool" else args.lightning_address for p in args.pools])
+        ],
+        "mode": args.mode
+    }
+    json_output = args.output.replace(".txt", ".json") if args.output else "config.json"
+    with open(json_output, "w") as f:
+        json.dump(config_json, f, indent=2)
+    print(f"Configuration JSON également sauvegardée dans {json_output}")
+
+if __name__ == "__main__":
+    main()
